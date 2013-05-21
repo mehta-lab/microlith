@@ -1,0 +1,363 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Evaluate accuracy of the Microlith package.</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-05-21"><meta name="DC.source" content="TestBench_MicrolithAccuracy_PSFOTF.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Evaluate accuracy of the Microlith package.</h1><!--introduction--><p>3D image of a point under fluorescent and coherent microscopes, i.e., incoherent and coherent point spread functions (PSF) are computed and compared with analytical expressions found in Born and Wolf. Also, 3D optical transfer functions are computed as 3D Fourier transforms of the PSFs.</p><p>Written by Shalin Mehta, www.mshalin.com, License: GPL v3 or later.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Set-up simulation grid:</a></li><li><a href="#2">Case 1: 3D PSF of a fluorescent microscope.</a></li><li><a href="#3">Case 2: 3D PSF of a coherent microscope.</a></li><li><a href="#4">Compute the 3D OTF of the fluorescence microscope and 3D CTF of the coherent microscope.</a></li></ul></div><h2>Set-up simulation grid:<a name="1"></a></h2><pre class="codeinput"><span class="comment">% All quantities are expressed in normalized optical coordinates</span>
+<span class="comment">% One can obtain the physical spatial coordinates like this:</span>
+<span class="comment">% x (physical)= x (optical) * (lambda/NA).</span>
+<span class="comment">% In normalized coordinates, the jinc function's first zero occurs at 0.61</span>
+<span class="comment">% and the circular pupil cuts-off at 1.</span>
+
+L=10; <span class="comment">% Support over which we want to calculate the image.</span>
+
+xs=0.05; <span class="comment">% Sampling rate in the specimen plane.</span>
+<span class="comment">% To avoid aliasing, specimen should be sampled at 0.2 lambda/NA</span>
+<span class="comment">% atleast.</span>
+<span class="comment">% Sampling rate in the specimen plane determines extent in frequency</span>
+<span class="comment">% domain.  xs=0.1 should suffice as the transfer function fits into the square with</span>
+<span class="comment">% side 2 or (1+S)/sqrt(2) and sampling at 0.1 defines support of [-5 5].</span>
+
+v=-L:xs:L; <span class="comment">% Transeverse extent of simulation.</span>
+u=-8:2*xs:8; <span class="comment">% Axial extent of simulation.</span>
+[vx, vy]=meshgrid(v);
+
+<span class="comment">% Point specimen.</span>
+specimen=double(vx==0 &amp; vy==0);
+
+<span class="comment">% Some other specimens for which analytical image is easy to compute.</span>
+<span class="comment">% % specimen=double(xx==0); %Slit</span>
+<span class="comment">% % specimen=ones(size(xx)); %Transparent.</span>
+</pre><h2>Case 1: 3D PSF of a fluorescent microscope.<a name="2"></a></h2><pre class="codeinput">params.NAo=1;
+params.lambda=1;
+params.nImm=1;
+params.nEmbb=1;
+RadioMetricFactor=params.NAo^2*(xs/0.1)^2;
+<span class="comment">% Factor that ensures radiometric consistency.</span>
+
+fluormic=microlith(v,u);
+
+computesys(fluormic,<span class="string">'Fluorescence'</span>,params);
+computeimage(fluormic,specimen,<span class="string">'CPU'</span>);
+
+<span class="comment">% Compare the simulated and theoretical images.</span>
+
+
+XYslice=fluormic.img(:,:,u==0);
+axialprof=squeeze(fluormic.img(v==0,v==0,:));
+
+
+
+XYsliceAnalytical=RadioMetricFactor*jinc(sqrt(vx.^2+vy.^2)).^2;
+axialprofAnalytical=RadioMetricFactor*sinc(u/2).^2;
+
+figure(1); clf;
+set(1,<span class="string">'Position'</span>,[100 100 700 500],<span class="string">'defaultaxesfontsize'</span>,14);
+colormap <span class="string">hot</span>;
+
+subplot(221);
+imagesc(v,v,XYslice);  axis <span class="string">equal</span>;
+xlim([-2 2]); ylim([-2 2]); colorbar;
+title(<span class="string">'Transverse PSF: Simulated'</span>);
+
+subplot(222);
+imagesc(v,v,XYsliceAnalytical); axis <span class="string">equal</span>;
+xlim([-2 2]); ylim([-2 2]); colorbar;
+title(<span class="string">'Transverse PSF: Analytical'</span>);
+
+subplot(2,2,[3 4]);
+plot(u,axialprof,<span class="string">'b--'</span>,u,axialprofAnalytical,<span class="string">'r-.'</span>,<span class="string">'LineWidth'</span>,2); xlim([-6 6]);
+title(<span class="string">'Intensity along the optical axis'</span>); legend(<span class="string">'Simulated'</span>,<span class="string">'Analytical'</span>);
+</pre><img vspace="5" hspace="5" src="TestBench_MicrolithAccuracy_PSFOTF_01.png" alt=""> <h2>Case 2: 3D PSF of a coherent microscope.<a name="3"></a></h2><pre class="codeinput">params.NAo=1;
+params.lambda=1;
+params.nImm=1;
+params.nEmbb=1;
+RadioMetricFactor=params.NAo^2*(xs/0.1)^2;
+<span class="comment">% Factor that ensures radiometric consistency.</span>
+
+cohmic=microlith(v,u);
+computesys(cohmic,<span class="string">'Coherent'</span>,params);
+computeimage(cohmic,specimen,<span class="string">'CPU'</span>);
+
+<span class="comment">% Compare the simulated and theoretical images.</span>
+
+
+XYslice=cohmic.img(:,:,u==0);
+axialprof=squeeze(cohmic.img(v==0,v==0,:));
+XYsliceAnalytical=RadioMetricFactor*jinc(sqrt(vx.^2+vy.^2));
+axialprofAnalytical=RadioMetricFactor*sinc(u/2).*exp(1i*pi*(u/2));
+
+figure(2);
+set(2,<span class="string">'Position'</span>,[100 100 700 500],<span class="string">'defaultaxesfontsize'</span>,14);
+colormap <span class="string">hot</span>;
+
+subplot(221);
+imagesc(v,v,real(XYslice)); axis <span class="string">equal</span>; colorbar;
+xlim([-2 2]); ylim([-2 2]); title(<span class="string">'Coherent PSF: Simulated'</span>);
+
+subplot(222);
+imagesc(v,v,XYsliceAnalytical); axis <span class="string">equal</span>; colorbar;
+xlim([-2 2]); ylim([-2 2]); title(<span class="string">'Coherent PSF: Analytical'</span>);
+
+subplot(2,2,[3 4]);
+plot(u,real(axialprof),<span class="string">'k--'</span>,u,real(axialprofAnalytical),<span class="string">'y-.'</span>,<span class="keyword">...</span>
+    u,imag(axialprof),<span class="string">'b--'</span>,u,imag(axialprofAnalytical),<span class="string">'r-.'</span>,<span class="keyword">...</span>
+    <span class="string">'LineWidth'</span>,2); xlim([-6 6]);
+title(<span class="string">'Amplitude along the optical axis'</span>);
+legend(<span class="string">'Simulated (Re part)'</span>,<span class="string">'Analytical (Re part)'</span>,<span class="string">'Simulated (Im part)'</span>,<span class="string">'Analytical(Im part)'</span>,<span class="keyword">...</span>
+    <span class="string">'Location'</span>,<span class="string">'BestOutside'</span>);
+</pre><img vspace="5" hspace="5" src="TestBench_MicrolithAccuracy_PSFOTF_02.png" alt=""> <h2>Compute the 3D OTF of the fluorescence microscope and 3D CTF of the coherent microscope.<a name="4"></a></h2><pre class="codeinput">OTF3D=fftshift(fftn(ifftshift(fluormic.img)));
+CTF3D=fftshift(fftn(ifftshift(cohmic.img)));
+OTFXZ=squeeze(OTF3D(:,fluormic.m==0,:));
+CTFXZ=squeeze(CTF3D(:,cohmic.m==0,:));
+
+figure(3); clf; colormap <span class="string">gray</span>;
+set(3,<span class="string">'Position'</span>,[100 100 600 800],<span class="string">'defaultaxesfontsize'</span>,14);
+
+subplot(221);
+imagesc(fluormic.mu,fluormic.m,abs(OTFXZ).^(0.3));
+axis <span class="string">equal</span>;
+title(<span class="string">'Magnitude^{0.3} of 3D OTF in XZ plane'</span>);
+xlabel(<span class="string">'Fz'</span>); ylabel(<span class="string">'Fx'</span>); ylim([-2 2]); xlim([-1 1]);
+
+subplot(222);
+imagesc(fluormic.mu,fluormic.m,angle(OTFXZ));
+axis <span class="string">equal</span>;
+title(<span class="string">'Angle of 3D OTF in XZ plane'</span>);
+xlabel(<span class="string">'Fz'</span>); ylabel(<span class="string">'Fx'</span>); ylim([-2 2]); xlim([-1 1]);
+
+subplot(223);
+imagesc(fluormic.mu,fluormic.m,abs(CTFXZ));
+axis <span class="string">equal</span>;
+title(<span class="string">'Magnitude of 3D CTF in XZ plane'</span>);
+xlabel(<span class="string">'Fz'</span>); ylabel(<span class="string">'Fx'</span>); ylim([-2 2]); xlim([-1 1]);
+
+subplot(224);
+imagesc(fluormic.mu,fluormic.m,angle(CTFXZ));
+axis <span class="string">equal</span>;
+title(<span class="string">'Angle of 3D CTF in XZ plane'</span>);
+xlabel(<span class="string">'Fz'</span>); ylabel(<span class="string">'Fx'</span>); ylim([-2 2]); xlim([-1 1]);
+</pre><img vspace="5" hspace="5" src="TestBench_MicrolithAccuracy_PSFOTF_03.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Evaluate accuracy of the Microlith package.
+%
+% 3D image of a point under fluorescent and coherent microscopes, i.e.,
+% incoherent and coherent point spread functions (PSF) are computed and
+% compared with analytical expressions found in Born and Wolf. Also, 3D
+% optical transfer functions are computed as 3D Fourier transforms of the PSFs.
+% 
+% Written by Shalin Mehta, www.mshalin.com, 
+% License: GPL v3 or later.
+
+
+%% Set-up simulation grid:
+
+% All quantities are expressed in normalized optical coordinates 
+% One can obtain the physical spatial coordinates like this:
+% x (physical)= x (optical) * (lambda/NA).
+% In normalized coordinates, the jinc function's first zero occurs at 0.61
+% and the circular pupil cuts-off at 1.
+
+L=10; % Support over which we want to calculate the image. 
+
+xs=0.05; % Sampling rate in the specimen plane.
+% To avoid aliasing, specimen should be sampled at 0.2 lambda/NA
+% atleast.
+% Sampling rate in the specimen plane determines extent in frequency
+% domain.  xs=0.1 should suffice as the transfer function fits into the square with
+% side 2 or (1+S)/sqrt(2) and sampling at 0.1 defines support of [-5 5].
+
+v=-L:xs:L; % Transeverse extent of simulation.
+u=-8:2*xs:8; % Axial extent of simulation.
+[vx, vy]=meshgrid(v);
+
+% Point specimen.
+specimen=double(vx==0 & vy==0); 
+
+% Some other specimens for which analytical image is easy to compute.
+% % specimen=double(xx==0); %Slit
+% % specimen=ones(size(xx)); %Transparent.
+
+
+%% Case 1: 3D PSF of a fluorescent microscope.
+
+
+params.NAo=1; 
+params.lambda=1; 
+params.nImm=1; 
+params.nEmbb=1;
+RadioMetricFactor=params.NAo^2*(xs/0.1)^2;
+% Factor that ensures radiometric consistency.
+
+fluormic=microlith(v,u);
+
+computesys(fluormic,'Fluorescence',params);
+computeimage(fluormic,specimen,'CPU');
+
+% Compare the simulated and theoretical images.
+
+
+XYslice=fluormic.img(:,:,u==0);
+axialprof=squeeze(fluormic.img(v==0,v==0,:));
+
+
+
+XYsliceAnalytical=RadioMetricFactor*jinc(sqrt(vx.^2+vy.^2)).^2;
+axialprofAnalytical=RadioMetricFactor*sinc(u/2).^2;
+
+figure(1); clf;
+set(1,'Position',[100 100 700 500],'defaultaxesfontsize',14);
+colormap hot;
+
+subplot(221);
+imagesc(v,v,XYslice);  axis equal; 
+xlim([-2 2]); ylim([-2 2]); colorbar;
+title('Transverse PSF: Simulated');
+
+subplot(222);
+imagesc(v,v,XYsliceAnalytical); axis equal;
+xlim([-2 2]); ylim([-2 2]); colorbar;
+title('Transverse PSF: Analytical');
+
+subplot(2,2,[3 4]);
+plot(u,axialprof,'bREPLACE_WITH_DASH_DASH',u,axialprofAnalytical,'r-.','LineWidth',2); xlim([-6 6]);
+title('Intensity along the optical axis'); legend('Simulated','Analytical');
+
+%% Case 2: 3D PSF of a coherent microscope.
+
+params.NAo=1; 
+params.lambda=1; 
+params.nImm=1; 
+params.nEmbb=1;
+RadioMetricFactor=params.NAo^2*(xs/0.1)^2;
+% Factor that ensures radiometric consistency.
+
+cohmic=microlith(v,u);
+computesys(cohmic,'Coherent',params);
+computeimage(cohmic,specimen,'CPU');
+
+% Compare the simulated and theoretical images.
+
+
+XYslice=cohmic.img(:,:,u==0);
+axialprof=squeeze(cohmic.img(v==0,v==0,:));
+XYsliceAnalytical=RadioMetricFactor*jinc(sqrt(vx.^2+vy.^2));
+axialprofAnalytical=RadioMetricFactor*sinc(u/2).*exp(1i*pi*(u/2));
+
+figure(2); 
+set(2,'Position',[100 100 700 500],'defaultaxesfontsize',14);
+colormap hot;
+
+subplot(221);
+imagesc(v,v,real(XYslice)); axis equal; colorbar;
+xlim([-2 2]); ylim([-2 2]); title('Coherent PSF: Simulated');
+
+subplot(222);
+imagesc(v,v,XYsliceAnalytical); axis equal; colorbar;
+xlim([-2 2]); ylim([-2 2]); title('Coherent PSF: Analytical');
+
+subplot(2,2,[3 4]);
+plot(u,real(axialprof),'kREPLACE_WITH_DASH_DASH',u,real(axialprofAnalytical),'y-.',...
+    u,imag(axialprof),'bREPLACE_WITH_DASH_DASH',u,imag(axialprofAnalytical),'r-.',...
+    'LineWidth',2); xlim([-6 6]);
+title('Amplitude along the optical axis'); 
+legend('Simulated (Re part)','Analytical (Re part)','Simulated (Im part)','Analytical(Im part)',...
+    'Location','BestOutside');
+
+%% Compute the 3D OTF of the fluorescence microscope and 3D CTF of the coherent microscope.
+OTF3D=fftshift(fftn(ifftshift(fluormic.img)));
+CTF3D=fftshift(fftn(ifftshift(cohmic.img)));
+OTFXZ=squeeze(OTF3D(:,fluormic.m==0,:));
+CTFXZ=squeeze(CTF3D(:,cohmic.m==0,:));
+
+figure(3); clf; colormap gray;
+set(3,'Position',[100 100 600 800],'defaultaxesfontsize',14);
+
+subplot(221);
+imagesc(fluormic.mu,fluormic.m,abs(OTFXZ).^(0.3));
+axis equal;
+title('Magnitude^{0.3} of 3D OTF in XZ plane');
+xlabel('Fz'); ylabel('Fx'); ylim([-2 2]); xlim([-1 1]);
+
+subplot(222);
+imagesc(fluormic.mu,fluormic.m,angle(OTFXZ));
+axis equal;
+title('Angle of 3D OTF in XZ plane');
+xlabel('Fz'); ylabel('Fx'); ylim([-2 2]); xlim([-1 1]);
+
+subplot(223);
+imagesc(fluormic.mu,fluormic.m,abs(CTFXZ));
+axis equal;
+title('Magnitude of 3D CTF in XZ plane');
+xlabel('Fz'); ylabel('Fx'); ylim([-2 2]); xlim([-1 1]);
+
+subplot(224);
+imagesc(fluormic.mu,fluormic.m,angle(CTFXZ));
+axis equal;
+title('Angle of 3D CTF in XZ plane');
+xlabel('Fz'); ylabel('Fx'); ylim([-2 2]); xlim([-1 1]);
+
+##### SOURCE END #####
+--></body></html>

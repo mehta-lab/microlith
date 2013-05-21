@@ -1,0 +1,210 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>TestBench_Microlith_BrightFieldThroughFocus</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-05-21"><meta name="DC.source" content="TestBench_Microlith_BrightFieldThroughFocus.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Simulated image of the Siemens star from the MBL/NNF amplitude target under bright-field microscope.</a></li><li><a href="#2">Set parameters of the microscope and the object.</a></li><li><a href="#3">Choose small simulation region for reasonable runtime.</a></li><li><a href="#4">Parameters of dark-field microscope and the image.</a></li><li><a href="#5">Computation takes time, so results of computation may be saved.</a></li><li><a href="#6">Compare images and the pattern.</a></li></ul></div><h2>Simulated image of the Siemens star from the MBL/NNF amplitude target under bright-field microscope.<a name="1"></a></h2><pre>The image is simulated in-focus and at defocus of 0.5 and 1um.</pre><p>Written by Shalin Mehta, www.mshalin.com License: GPL v3 or later.</p><pre class="codeinput"><span class="comment">% This file is part of microlith package.</span>
+<span class="comment">%</span>
+<span class="comment">%     microlith is free software: you can redistribute it and/or modify</span>
+<span class="comment">%     it under the terms of the GNU General Public License as published by</span>
+<span class="comment">%     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="comment">%     (at your option) any later version.</span>
+<span class="comment">%</span>
+<span class="comment">%     microlith is distributed in the hope that it will be useful,</span>
+<span class="comment">%     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="comment">%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="comment">%     GNU General Public License for more details.</span>
+<span class="comment">%</span>
+<span class="comment">%     You should have received a copy of the GNU General Public License</span>
+<span class="comment">%     along with microlith.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+</pre><h2>Set parameters of the microscope and the object.<a name="2"></a></h2><pre class="codeinput">clear <span class="string">all</span>; clc;
+
+wavelength=0.577; NAo=1.3;
+RISiO2=1.55;
+ThickSiO2=0.09;
+zsim=[0 0.5 1];
+Rsim=7; <span class="comment">% Radius over which simulation is performed.</span>
+xsim=-Rsim:0.02:Rsim;
+</pre><h2>Choose small simulation region for reasonable runtime.<a name="3"></a></h2><pre class="codeinput">SimensPattern=mblnnfSiemens(xsim,xsim,0);
+<span class="comment">%  Open the matlabpool if parallel computing toolbox is installed.</span>
+<span class="comment">% matlabpool 3;</span>
+</pre><h2>Parameters of dark-field microscope and the image.<a name="4"></a></h2><pre class="codeinput">BFparams.NAo=NAo;
+BFparams.wavelength=wavelength;
+BFparams.NAc=NAo;
+BFparams.nImm=1.515;
+BFparams.nEmbb=1.33;
+
+BFsys=microlith(xsim,zsim);
+BFsys.computesys(<span class="string">'Brightfield'</span>,BFparams);
+BFThroughFocus=BFsys.computeimage(SimensPattern,<span class="string">'multiCPU'</span>);
+</pre><h2>Computation takes time, so results of computation may be saved.<a name="5"></a></h2><pre class="codeinput"><span class="comment">%save([savedir 'MBLNNF_SiemensStar_BFimg.mat'],'BFsys');</span>
+<span class="comment">%load([savedir 'MBLNNF_SiemensStar_BFimg.mat'],'BFsys');</span>
+</pre><h2>Compare images and the pattern.<a name="6"></a></h2><p>Notice the artifacts very close to the edge. This example illustrates the need for the simulation grid to be slightly larger than the feature of interest. At defocus of 0.5 um, the resolution is slightly degraded. At
+ defocus of 1 um, we start seeing contrast reversals.</p><pre class="codeinput">figure(1); set(1,<span class="string">'Color'</span>,<span class="string">'white'</span>,<span class="string">'defaultaxesfontsize'</span>,16);
+colormap <span class="string">gray</span>;
+
+h(1)=subplot(221);
+imagesc(xsim,xsim,SimensPattern); axis <span class="string">equal</span>; axis <span class="string">tight</span>; colorbar;
+title(<span class="string">'Mask'</span>);
+
+h(2)=subplot(222);
+imagesc(xsim,xsim,BFsys.img(:,:,1)); axis <span class="string">equal</span>; axis <span class="string">tight</span>; colorbar;
+title(<span class="string">'In focus image'</span>);
+
+h(3)=subplot(223);
+imagesc(xsim,xsim,BFsys.img(:,:,2)); axis <span class="string">equal</span>; axis <span class="string">tight</span>; colorbar;
+title(<span class="string">'Defocused image, 0.5 \mum'</span>);
+
+
+h(4)=subplot(224);
+imagesc(xsim,xsim,BFsys.img(:,:,3)); axis <span class="string">equal</span>; axis <span class="string">tight</span>; colorbar;
+title(<span class="string">'Defocused image, 1 \mum'</span>);
+
+linkaxes(h);
+</pre><img vspace="5" hspace="5" src="TestBench_Microlith_BrightFieldThroughFocus_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Simulated image of the Siemens star from the MBL/NNF amplitude target under bright-field microscope.
+%
+%  The image is simulated in-focus and at defocus of 0.5 and 1um.
+% 
+% Written by Shalin Mehta, www.mshalin.com 
+% License: GPL v3 or later.
+
+% This file is part of microlith package.
+% 
+%     microlith is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     microlith is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with microlith.  If not, see <http://www.gnu.org/licenses/>.
+
+%% Set parameters of the microscope and the object.
+
+clear all; clc;
+
+wavelength=0.577; NAo=1.3;
+RISiO2=1.55;
+ThickSiO2=0.09;
+zsim=[0 0.5 1];
+Rsim=7; % Radius over which simulation is performed.
+xsim=-Rsim:0.02:Rsim;
+
+%% Choose small simulation region for reasonable runtime.
+
+SimensPattern=mblnnfSiemens(xsim,xsim,0);
+%  Open the matlabpool if parallel computing toolbox is installed.
+% matlabpool 3;
+
+%% Parameters of dark-field microscope and the image.
+BFparams.NAo=NAo;
+BFparams.wavelength=wavelength;
+BFparams.NAc=NAo;
+BFparams.nImm=1.515;
+BFparams.nEmbb=1.33;
+
+BFsys=microlith(xsim,zsim);
+BFsys.computesys('Brightfield',BFparams);
+BFThroughFocus=BFsys.computeimage(SimensPattern,'multiCPU');
+
+%% Computation takes time, so results of computation may be saved.
+%save([savedir 'MBLNNF_SiemensStar_BFimg.mat'],'BFsys');
+%load([savedir 'MBLNNF_SiemensStar_BFimg.mat'],'BFsys');
+
+%% Compare images and the pattern.
+% Notice the artifacts very close to the edge. This example illustrates the
+% need for the simulation grid to be slightly larger than the feature of
+% interest.At defocus of 0.5 um, the resolution is slightly degraded. At
+% defocus of 1 um, we start seeing contrast reversals.
+
+figure(1); set(1,'Color','white','defaultaxesfontsize',16);
+colormap gray;
+
+h(1)=subplot(221);
+imagesc(xsim,xsim,SimensPattern); axis equal; axis tight; colorbar;
+title('Mask');
+
+h(2)=subplot(222);
+imagesc(xsim,xsim,BFsys.img(:,:,1)); axis equal; axis tight; colorbar;
+title('In focus image');
+
+h(3)=subplot(223);
+imagesc(xsim,xsim,BFsys.img(:,:,2)); axis equal; axis tight; colorbar;
+title('Defocused image, 0.5 \mum');
+
+
+h(4)=subplot(224);
+imagesc(xsim,xsim,BFsys.img(:,:,3)); axis equal; axis tight; colorbar;
+title('Defocused image, 1 \mum');
+
+linkaxes(h);
+##### SOURCE END #####
+--></body></html>
