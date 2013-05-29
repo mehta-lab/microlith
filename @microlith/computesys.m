@@ -116,7 +116,9 @@ function computesys(self,config,params)
                     Po=1i*Po.*sin(2*pi*freqGridShear*halfshear-halfbias);                   
                 
                     if(strcmp(config,'PlasDIC'))
-                        PlasDICslit=abs(freqGridShear)<=(params.slitNA/params.NAo);
+                        PlasDICslit=abs(freqGridShear)<=(params.NAc/params.NAo);
+                        % In PlasDIC, illumination is through a slit,
+                        % instead of a circular aperture.
                         Ic=Ic.*double(PlasDICslit);
                     end
                     

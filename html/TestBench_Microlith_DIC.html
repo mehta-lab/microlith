@@ -1,0 +1,253 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>TestBench_Microlith_DIC</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-05-28"><meta name="DC.source" content="TestBench_Microlith_DIC.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Image of MBL/NNF Siemens target under differential interference contrast.</a></li><li><a href="#2">Set parameters of the target.</a></li><li><a href="#3">Parameters of the DIC microscope.</a></li><li><a href="#4">Compute specimen transmission.</a></li><li><a href="#5">Compare the etch profile and images.</a></li></ul></div><h2>Image of MBL/NNF Siemens target under differential interference contrast.<a name="1"></a></h2><p>This script simulates image of the Siemens test object from the MBL-NNF phase target for differential interference contrast (DIC) imaging. We simulate a small region 7umx7um near the center so that the computation can be carried out in reasonable time.</p><p>Images for two models of DIC (as designed by Smith and Nomarski that uses prisms on both condenser and objective side) are compared. The diffraction model proposed in 1999 by Preza[1] failed to account for the coherence effects of the condenser-side prism and therefore predicts poor DIC contrast when imaging is done with large condenser aperture, which is actually the experimental advantage of DIC over other phase microscopy methods.</p><p>Our model [2] correctly accounts for the coherence effects and predicts a contrast that matched well with experimental images.</p><p>[1] C. Preza, D. L. Snyder, and J.-A. Conchello, &#8220;Theoretical development and experimental evaluation of imaging models for differential interference contrast microscopy,&#8221; J. Opt. Soc. Am. A 16, 2185&#8211;2199 (1999).</p><p>[2] S. B. Mehta and C. J. R. Sheppard, &#8220;Partially coherent image formation in differential interference contrast (DIC) microscope,&#8221; Opt. Express 16, 19462&#8211;19479(2008).</p><p>We also simulate an image assuming a PlasDIC system as designed by Zeiss that uses a slit on the illumination side and a prism on the objective side.</p><pre class="codeinput">clear <span class="string">all</span>;
+</pre><h2>Set parameters of the target.<a name="2"></a></h2><pre class="codeinput"><span class="comment">% Following numbers are from Fig 8.2 of the book chapter on MBL/NNF</span>
+<span class="comment">% target.</span>
+Rout=75/2;<span class="comment">% Outer radius of siemens star.</span>
+Rin=0.6; <span class="comment">%Inner radius of siemens star.</span>
+RISiO2=1.46;
+ThickSiO2=0.09;
+simRadius=7; <span class="comment">% radius of simulated region.</span>
+</pre><h2>Parameters of the DIC microscope.<a name="3"></a></h2><p>Parameters correspond to the experimental image that we use in the paper.</p><pre class="codeinput">DICparams.wavelength=0.546;
+DICparams.NAo=1.4;
+DICparams.NAc=0.95; <span class="comment">% Between the coverglass and coverslip airgap was present. Condenser was oiled though.</span>
+DICparams.nEmbb=1;
+DICparams.nImm=1.515;
+DICparams.shear=0.48/2; <span class="comment">%Measured from fringe.</span>
+DICparams.bias=25;
+DICparams.shearangle=45;
+</pre><h2>Compute specimen transmission.<a name="4"></a></h2><pre class="codeinput">xsim=-simRadius:0.02:simRadius;
+<span class="comment">%2nm sampling is required to properly sample slight over or under-etching of the target</span>
+usim=0;
+<span class="comment">%usim=-1:0.2:1;  % To simulate defocus.</span>
+
+<span class="comment">% Assume slight overetching and therefore non-square azimuthal phase</span>
+<span class="comment">% grating.</span>
+OverEtchProfile=mblnnfSiemens(xsim,xsim,0.04);
+
+oplOverEtch=(2*pi/DICparams.wavelength)*(DICparams.nEmbb-RISiO2)*OverEtchProfile*ThickSiO2;
+specimenOverEtch=exp(1i*oplOverEtch);
+
+
+DICMicroscope=microlith(xsim,usim); <span class="comment">% Second argument is z.</span>
+
+<span class="comment">% Compute system pupils and the image according to the model proposed by</span>
+<span class="comment">% Mehta and Sheppard.</span>
+DICMicroscope.computesys(<span class="string">'DIC'</span>,DICparams);
+DICImage=DICMicroscope.computeimage(specimenOverEtch,<span class="string">'CPU'</span>);
+
+<span class="comment">% Compute system pupils and the image according to the model proposed by</span>
+<span class="comment">% Preza et al.</span>
+DICMicroscope.computesys(<span class="string">'DIC-Preza'</span>,DICparams);
+DICPrezaImage=DICMicroscope.computeimage(specimenOverEtch,<span class="string">'CPU'</span>);
+
+<span class="comment">% Compute system pupils and the image for PlasDIC system.</span>
+DICparams.NAc=0.25;
+DICMicroscope.computesys(<span class="string">'PlasDIC'</span>,DICparams);
+PlasDICImage=DICMicroscope.computeimage(specimenOverEtch,<span class="string">'CPU'</span>);
+</pre><h2>Compare the etch profile and images.<a name="5"></a></h2><p>Dark regions are etched and white regions are intact silica. Images are linked, so panning or zooming one will do the same for all images.</p><pre class="codeinput">DICDisp=gray2norm(DICImage);
+DICPrezaDisp=gray2norm(DICPrezaImage);
+PlasDICDisp=gray2norm(PlasDICImage);
+figure(1); clf;
+
+set(1,<span class="string">'color'</span>,<span class="string">'white'</span>,<span class="string">'Position'</span>,[100 100 800 800],<span class="string">'defaultaxesfontsize'</span>,14);
+colormap <span class="string">gray</span>;
+ha=imagecat(xsim,xsim,~OverEtchProfile,DICDisp,DICPrezaDisp,PlasDICDisp,<span class="string">'equal'</span>,<span class="string">'link'</span>);
+<span class="comment">% All four images are linked, so zooming or panning one will do the same on</span>
+<span class="comment">% all others.</span>
+
+axes(ha(1)); title(<span class="string">'Etched pattern'</span>);
+axes(ha(2)); title(<span class="string">'DIC image (model: Mehta and Sheppard)'</span>);
+set(gca,<span class="string">'Clim'</span>,[0 1]);
+axes(ha(3)); title(<span class="string">'DIC image (model: Preza et al)'</span>);
+set(gca,<span class="string">'Clim'</span>,[0 1]);
+axes(ha(4)); title(<span class="string">'PlasDIC image'</span>);
+set(gca,<span class="string">'Clim'</span>,[0 1]);
+
+xlim([-6.5 6.5]); ylim([-6.5 6.5]);
+<span class="comment">% The features at the edges (about 200nm or the size of the image of a</span>
+<span class="comment">% point) are affected by the edge artifacts.</span>
+</pre><img vspace="5" hspace="5" src="TestBench_Microlith_DIC_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Image of MBL/NNF Siemens target under differential interference contrast.
+% This script simulates image of the Siemens test object from the MBL-NNF
+% phase target for differential interference contrast (DIC) imaging.
+% We simulate a small region 7umx7um near the center so that the
+% computation can be carried out in reasonable time. 
+% 
+% Images for two models of DIC (as designed by Smith and Nomarski that uses
+% prisms on both condenser and objective side) are compared.
+% The diffraction model proposed in 1999 by Preza[1] failed to account for
+% the coherence effects of the condenser-side prism and therefore predicts
+% poor DIC contrast when imaging is done with large condenser aperture,
+% which is actually the experimental advantage of DIC over other phase microscopy
+% methods.
+% 
+% Our model [2] correctly accounts for the coherence effects and predicts
+% a contrast that matched well with experimental images.
+%
+% [1] C. Preza, D. L. Snyder, and J.-A. Conchello, “Theoretical development
+% and experimental evaluation of imaging models for differential
+% interference contrast microscopy,” J. Opt. Soc. Am. A 16, 2185–2199
+% (1999).
+%
+% [2] S. B. Mehta and C. J. R. Sheppard, “Partially coherent image
+% formation in differential interference contrast (DIC) microscope,” Opt.
+% Express 16, 19462–19479(2008).
+% 
+% We also simulate an image assuming a PlasDIC system as designed by Zeiss
+% that uses a slit on the illumination side and a prism on the objective
+% side.
+
+
+clear all;
+
+%% Set parameters of the target.
+
+% Following numbers are from Fig 8.2 of the book chapter on MBL/NNF
+% target.
+Rout=75/2;% Outer radius of siemens star.
+Rin=0.6; %Inner radius of siemens star.
+RISiO2=1.46;
+ThickSiO2=0.09;
+simRadius=7; % radius of simulated region.
+
+
+%% Parameters of the DIC microscope.
+% Parameters correspond to the experimental image that we use in the paper.
+
+DICparams.wavelength=0.546; 
+DICparams.NAo=1.4;
+DICparams.NAc=0.95; % Between the coverglass and coverslip airgap was present. Condenser was oiled though.
+DICparams.nEmbb=1;
+DICparams.nImm=1.515;
+DICparams.shear=0.48/2; %Measured from fringe.
+DICparams.bias=25; 
+DICparams.shearangle=45;
+
+
+%% Compute specimen transmission.
+
+xsim=-simRadius:0.02:simRadius; 
+%2nm sampling is required to properly sample slight over or under-etching of the target
+usim=0;
+%usim=-1:0.2:1;  % To simulate defocus.
+
+% Assume slight overetching and therefore non-square azimuthal phase
+% grating. 
+OverEtchProfile=mblnnfSiemens(xsim,xsim,0.04); 
+
+oplOverEtch=(2*pi/DICparams.wavelength)*(DICparams.nEmbb-RISiO2)*OverEtchProfile*ThickSiO2;
+specimenOverEtch=exp(1i*oplOverEtch);
+
+
+DICMicroscope=microlith(xsim,usim); % Second argument is z.
+
+% Compute system pupils and the image according to the model proposed by
+% Mehta and Sheppard.
+DICMicroscope.computesys('DIC',DICparams);
+DICImage=DICMicroscope.computeimage(specimenOverEtch,'CPU');
+
+% Compute system pupils and the image according to the model proposed by
+% Preza et al.
+DICMicroscope.computesys('DIC-Preza',DICparams);
+DICPrezaImage=DICMicroscope.computeimage(specimenOverEtch,'CPU');
+
+% Compute system pupils and the image for PlasDIC system.
+DICparams.NAc=0.25;
+DICMicroscope.computesys('PlasDIC',DICparams);
+PlasDICImage=DICMicroscope.computeimage(specimenOverEtch,'CPU');
+
+%% Compare the etch profile and images.
+% Dark regions are etched and white regions are intact silica.
+% Images are linked, so panning or zooming one will do the same for all
+% images.
+DICDisp=gray2norm(DICImage);
+DICPrezaDisp=gray2norm(DICPrezaImage);
+PlasDICDisp=gray2norm(PlasDICImage);
+figure(1); clf;
+
+set(1,'color','white','Position',[100 100 800 800],'defaultaxesfontsize',14); 
+colormap gray;
+ha=imagecat(xsim,xsim,~OverEtchProfile,DICDisp,DICPrezaDisp,PlasDICDisp,'equal','link');
+% All four images are linked, so zooming or panning one will do the same on
+% all others.
+
+axes(ha(1)); title('Etched pattern');
+axes(ha(2)); title('DIC image (model: Mehta and Sheppard)'); 
+set(gca,'Clim',[0 1]);
+axes(ha(3)); title('DIC image (model: Preza et al)');
+set(gca,'Clim',[0 1]);
+axes(ha(4)); title('PlasDIC image');
+set(gca,'Clim',[0 1]);
+
+xlim([-6.5 6.5]); ylim([-6.5 6.5]); 
+% The features at the edges (about 200nm or the size of the image of a
+% point) are affected by the edge artifacts.
+##### SOURCE END #####
+--></body></html>

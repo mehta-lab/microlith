@@ -10,4 +10,5 @@ TestBench_MicrolithAccuracy_PSFOTF;
 TestBench_MicrolithAccuracy_2PointPartialCoherence;
 TestBench_MicrolithRadiometricConsistency;
 TestBench_Microlith_BrightFieldThroughFocus;
-
+TestBench_Microlith_DarkField;
+TestBench_Microlith_DIC;
