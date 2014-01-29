@@ -39,8 +39,6 @@ parfor idx=1:length(sep)
     twopointsimulated(:,:,idx)=brightfield.img;
 end
 
-
-
 %% Analytical image of two points separated by D wavelength/NA.
 % The expression can be found in Born & Wolf inside the section on 'two-point resolution.'
 S=params.NAc/params.NAo;

@@ -88,9 +88,9 @@ function img=sumOverSource(objSpectrum,Po,Ic)
     
         loopvar=1;
         Ns=numel(nshift);
-        Np=numel(find(Po));
+%        Np=numel(find(Po));
    % msgLen=0;
-        ifftscale=FreqGridLen^2/Np;
+%        ifftscale=FreqGridLen^2/Np;
 
     while loopvar<=Ns
         % A parallel computing demo at http://www.mathworks.com/products/demos/parallel-computing/paralleldemo_gpu_mandelbrot/
@@ -130,7 +130,8 @@ function img=sumOverSource(objSpectrum,Po,Ic)
            % relative strengths of spatial frequency.
   
 
-           imgpoint=ifftscale*fftshift(ifft2(ifftshift(imgspectrum ))); 
+%           imgpoint=ifftscale*fftshift(ifft2(ifftshift(imgspectrum ))); 
+           imgpoint=fftshift(ifft2(ifftshift(imgspectrum ))); 
            imgpoint=SrcInt(loopvar)*abs(imgpoint).^2;
            img=img+imgpoint;
            
@@ -164,7 +165,7 @@ function img=sumOverSource(objSpectrum,Po,Ic)
 % Normalize the image such that the values do not depend on the fineness of
 % the source grid.
    
-    img=img/Np;
+%    img=img/Np;
 
 % Following is the normalization according to Martin's book. It ensures
 % that a transparent specimen is imaged with unit intensity.

@@ -12,3 +12,5 @@ TestBench_MicrolithRadiometricConsistency;
 TestBench_Microlith_BrightFieldThroughFocus;
 TestBench_Microlith_DarkField;
 TestBench_Microlith_DIC;
+TestBench_Microlith_1DSpecimen;
+TestBench_Microlith_Aberrations;

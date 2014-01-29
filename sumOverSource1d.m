@@ -1,11 +1,9 @@
-function img=sumOverSource1d(objSpectrum,Po,Ic)
+function img=sumOverSource1d(objSpectrum,Po,srcInt,nshift,mshift,Ns,L)
 % SUMOVERSOURCE1D Fast simulation of image of a 1D specimen under partially
 % coherent system.
-%   IMG=SUMOVERSOURCE(objSpectrum,Po,Ic) computes partially
-%   coherent image (IMG) using the spectrum of the specimen (OBJSPECTRUM),
-%   pupil of the imaging path (Po), and, intensity distribution of the
-%   effective source (Ic). objSpectrum is a 1D vector instead of 2D matrix
-%   as in case of sumOverSource.
+%   IMG=SUMOVERSOURCE1D(objSpectrum,Po,srcInt,nshift,mshift,Ns,L) computes partially
+%   coherent image of 1D specimen, objSpectrum is a 1D vector instead of 2D matrix
+% 
 % 
 %   See also: sumOverSource.
 %
@@ -33,21 +31,7 @@ function img=sumOverSource1d(objSpectrum,Po,Ic)
     % to accommodate the largest spatial frequency that is captured.
     % Therefore, there is no need to pad either objspec or Po to find the
     % product of shifted objspec and Po.
-    
-    %Find non-zero pixels on condenser and the amount of spectral shift
-    %induced by them.
-    %------------------------------------------
-    [nshift,mshift, SrcInt]=find(Ic);
-    
-    if(isa(Po,'gpuArray'))
-        FreqGridLen=gpuArray(size(Ic,1));
-    else
-        FreqGridLen=size(Ic,1);
-    end
-    
-    freqOrigin=floor(0.5*FreqGridLen+1);
-    mshift=mshift-freqOrigin; 
-    
+        
     % For each source point, calculate what indices from the unshifted
     % spectrum map to what indices of shifted spectrum.
     %---------------------------------------
@@ -58,52 +42,43 @@ function img=sumOverSource1d(objSpectrum,Po,Ic)
     
     mSpectrumStart=negmshift.*(-mshift+1) +...
         posmshift.*1;
-    mSpectrumEnd=negmshift.*(FreqGridLen)+ ...
-        posmshift.*(FreqGridLen-mshift);
+    mSpectrumEnd=negmshift.*(L)+ ...
+        posmshift.*(L-mshift);
     
     mShiftSpectrumStart=negmshift.*1 +...
         posmshift.*(mshift+1);
-    mShiftSpectrumEnd=negmshift.*(FreqGridLen+mshift) +...
-        posmshift.*FreqGridLen;
+    mShiftSpectrumEnd=negmshift.*(L+mshift) +...
+        posmshift.*L;
         
 %     % Above is the vectorized form of the following logic for each mshift.
 %     % It is vectorized to run efficiently on GPU.
 %          if(mshift<0)
-%              mSpectrumidx= (-mshift+1):FreqGridLen;
-%              mShiftedSpectrumidx= 1:(FreqGridLen+mshift);
+%              mSpectrumidx= (-mshift+1):L;
+%              mShiftedSpectrumidx= 1:(L+mshift);
 % 
 %          else
 %              mSpectrumidx=1:(Len-mshift);
 %              mShiftedSpectrumidx=(1+mshift):Len;
 %          end
     
-        loopvar=1;
-        Ns=numel(nshift);
-    if(isa(Po,'gpuArray'))
-        colonfun=@gpuArray.colon;
-        loopvar=gpuArray(1);
-        Ns=gpuArray(numel(nshift));        
-    else
-        colonfun=@colon;
-    end
+    loopvar=ones(1,'like',Ns);
+
     
     while loopvar<=Ns
         % A parallel computing demo at http://www.mathworks.com/products/demos/parallel-computing/paralleldemo_gpu_mandelbrot/
         % suggests that while loop is more efficient on GPU then for
         % loop.
 
-         nidxPo=nshift(loopvar);
+         nidxPo=nshift(loopvar)+floor(0.5*L); %nshift of zero corresponds to the center of Po.
          
-         midxshifted=colonfun(mShiftSpectrumStart(loopvar),mShiftSpectrumEnd(loopvar));         
-         midxunshifted=colonfun(mSpectrumStart(loopvar),mSpectrumEnd(loopvar));
+         midxshifted=colon(mShiftSpectrumStart(loopvar),mShiftSpectrumEnd(loopvar));         
+         midxunshifted=colon(mSpectrumStart(loopvar),mSpectrumEnd(loopvar));
          
          objspecshifted(midxshifted)=objSpectrum(midxunshifted);
          
          imgspectrum=objspecshifted.*Po(nidxPo,:);
            
-         imgspectrumsignificant=abs(imgspectrum)>1E-20;
-         ifftscale=FreqGridLen/sum(imgspectrumsignificant(:));
-          
+
            %IFFT2 algorithm divides the input by numel(Po). The
            %value at zero index of the output of IFFT2 is equal to the number of nonzero
            %elements,i.e., numel(find(Po)). The above scale compensates
@@ -112,8 +87,8 @@ function img=sumOverSource1d(objSpectrum,Po,Ic)
            %compare images (apple to apple) computed over different grid sizes.
 
 
-           imgpoint=fftshift(ifft(ifftshift( ifftscale*imgspectrum ))); 
-           imgpoint=SrcInt(loopvar)*abs(imgpoint).^2;
+           imgpoint=fftshift(ifft(ifftshift(imgspectrum ))); 
+           imgpoint=srcInt(loopvar)*abs(imgpoint).^2;
            img=img+imgpoint;
            
            % As we sum over the source-points, the peak value in img depends on the sampling of
@@ -144,8 +119,6 @@ function img=sumOverSource1d(objSpectrum,Po,Ic)
     
 % Normalize the image such that the values do not depend on the fineness of
 % the source grid.
-
-    img=img/Ns;
 
 % Following is the normalization according to Martin's book. We do not use it, because the
 % following leads to divide by zero for dark-field system.

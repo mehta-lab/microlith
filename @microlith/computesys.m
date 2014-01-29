@@ -8,7 +8,7 @@ function computesys(self,config,params)
 %   
 %   Valid string-values for config are:
 %   'Brightfield','Darkfield','PhaseContrast','DIC','DIC-Preza','PlasDIC',
-%   'Fluorescence','Incoherent','Confocal','Coherent'.
+%   'Fluorescence','Incoherent','Confocal','Coherent', 'Custom'.
 %   Following table summarizes the parameters tht can be present in the params structure 
 %   and for which configurations they are used.
 %     NAo           Numerical aperture of the imaging path (all configurations)
@@ -27,7 +27,11 @@ function computesys(self,config,params)
 %                   90 leads to brightfield contrast.
 %     shearangle    For DIC,DIC-Preza, and PlasDIC systems, 
 %                   the direction of shear specified in degrees.
-%      
+%     astigmatism   Astigmatism specified as coefficients of Zernike polynomials (n,m)=(2,-2) and
+%     (2,2)
+%     coma          Coma specified as coefficeients of Zernike polynomials
+%     (n,m)= (3,1) and (3,-1).
+%     spherical     Spherical aberration specified as coefficent for Zernike polynomial (n,m)=(4,0). 
 %
 %   Written by Shalin Mehta, www.mshalin.com 
 %   License: GPL v3 or later.
@@ -81,8 +85,8 @@ function computesys(self,config,params)
     
     % Obtain azimuthal and radial co-ordinates in the pupil plane.
     %---------------------
-    [mtheta, mr]=cart2pol(self.mm,self.nn);%#ok<ASGLU>
-
+    [mtheta, mr]=cart2pol(self.mm,self.nn);
+    mrUnitCircle=mr.*(mr<=1); % Set all pixes outside of unit circle to zero for computation of Zernike polynomials.
    
    % Initialize pupils of the system
    %--------------------------------
@@ -90,23 +94,45 @@ function computesys(self,config,params)
     Po=single(mr<=1);
    % Po(Po<0)=1; %For pixels that are entirely within pupil set the transmittance to 1.
    % Po(Po>1)=0; %For pixels that are entirely outside pupil set the transmittance to 0. 
-      
-    Tfun=self.Tfun;
-    % TODO: Model aberrations using zernike coefficients.
-    %     if(isfield(params,'spherical'))
-    %        aber=(1-6*mr.^2+6*mr.^4); %Spherical aberration as zernike polynomial.
-    %     end
-    %---------------------
+    
+   % Model aberrations (astigmastism, coma, spherical) using Zernike
+   % polynomials
+   %---------------------------------
+   if(isfield(params,'astigmatism'))
+      Pastigm=params.astigmatism(1)*mrUnitCircle.^2.*cos(2*mtheta) +...
+              params.astigmatism(2)*mrUnitCircle.^2.*sin(2*mtheta);  
+   else
+       Pastigm=zeros(size(Po));
+   end
+   
+   if(isfield(params,'coma'))
+       Pcoma=params.coma(1)*(3*mrUnitCircle.^3-2*mrUnitCircle).*cos(mtheta)+...
+           params.coma(1)*(3*mrUnitCircle.^3-2*mrUnitCircle).*sin(mtheta);
+   else
+       Pcoma=zeros(size(Po));
+   end
+   
+   if(isfield(params,'spherical'))
+       Pspherical=params.spherical*(6*mrUnitCircle.^4-6*mrUnitCircle.^2+1);
+   else
+       Pspherical=zeros(size(Po));
+   end
+   
+   PAberration=exp(1i*Pastigm).*exp(1i*Pcoma).*exp(1i*Pspherical);
+   Po=Po.*single(PAberration);
+  
+
      
     % Now set-up the pupils according to configuration
     %-----------------------
-    
-    
+       
+    Tfun=self.Tfun;
     switch(config)
             case {'Brightfield','DIC','DIC-Preza','PlasDIC'}
                 S=params.NAc/params.NAo;
                 Ic=single(mr<=S);  % Use of epsilon guards against numerical inaccuracy.             
                 
+    
                 if(any(strcmp(config,{'DIC-Preza','PlasDIC'})))
                     
                     freqGridShear=self.mm*cos(params.shearangle*pi/180)+...
@@ -125,7 +151,6 @@ function computesys(self,config,params)
                 end
                 
 
-                
                 for idx=1:length(u)
                     Tfun(:,:,idx)=Po.*exp(pi*1i*u(idx)*mr.^2);
                 end
@@ -140,8 +165,7 @@ function computesys(self,config,params)
                 Ic=single(mr>=params.annulus(1)/params.NAo ... Inner radius.
                        & mr<=params.annulus(2)/params.NAo ... Outer radius.
                        );
-
-                
+       
                 parfor idx=1:length(u)
                     Tfun(:,:,idx)=Po.*exp(pi*1i*u(idx)*mr.^2);
                 end
@@ -172,9 +196,24 @@ function computesys(self,config,params)
                 parfor idx=1:length(u)
                     Tfun(:,:,idx)=Po.*exp(pi*1i*u(idx)*mr.^2);
                 end
-                                
+                
+        case 'CustomPartiallyCoherent'%Replace Po and Ic by what was passed.
+                Po=params.Po;
+                Ic=params.Ic;
+                parfor idx=1:length(u)
+                    Tfun(:,:,idx)=Po.*exp(pi*1i*u(idx)*mr.^2);
+                end
+                                 
         case {'Fluorescence','Incoherent'}
             Ic=NaN;
+            parfor idx=1:length(u)
+                ctf=Po.*exp(pi*1i*u(idx)*mr.^2);
+                Tfun(:,:,idx)=ctf2otf(ctf);
+            end
+            
+        case {'CustomIncoherent'}
+            Ic=NaN;
+            Po=params.Po;
             parfor idx=1:length(u)
                 ctf=Po.*exp(pi*1i*u(idx)*mr.^2);
                 Tfun(:,:,idx)=ctf2otf(ctf);
@@ -193,9 +232,16 @@ function computesys(self,config,params)
             parfor idx=1:length(u)
                 Tfun(:,:,idx)=Po.*exp(pi*1i*u(idx)*mr.^2);
             end
-        
+            
+        case 'CustomCoherent'
+            Ic=double(self.mm==0 & self.nn==0);
+            Po=params.Po;
+            parfor idx=1:length(u)
+                Tfun(:,:,idx)=Po.*exp(pi*1i*u(idx)*mr.^2);
+            end
+            
         otherwise
-            error(['The configuration: ' config 'is not implemented.']);
+            error(['The configuration: ' config ' is not implemented.']);
     end
     
     self.config=config;
@@ -206,7 +252,7 @@ function computesys(self,config,params)
     self.u=u;
     self.v=v;
 end
-
+     
 function otf=ctf2otf(ctf)
 % OTF=CTF2OTF(CTF) computes the optical transfer function (OTF) from
 % the coherent transfer function (CTF) of the imaging system.

@@ -102,7 +102,7 @@ ha=imagecat(xsim,xsim,~OverEtchProfile,DICDisp,DICPrezaDisp,PlasDICDisp,'equal',
 % All four images are linked, so zooming or panning one will do the same on
 % all others.
 
-axes(ha(1)); title('Etched pattern (by 2nm)');
+axes(ha(1)); title('Etched pattern');
 axes(ha(2)); title('DIC image (model: Mehta and Sheppard)'); 
 set(gca,'Clim',[0 1]);
 axes(ha(3)); title('DIC image (model: Preza et al)');

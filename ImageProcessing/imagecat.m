@@ -11,6 +11,9 @@ function h=imagecat(varargin)
 % IMAGECAT(...,'link') links all image axes (see linkaxes).
 % IMAGECAT(...,'xy') displays all axes with xy orientation (see axis xy)
 % IMAGECAT(...,'equal') sets the axes to be proportional (see axis equal)
+% IMAGECAT(...,'off') makes axis and tick labels invisible. (see axis off)
+% IMAGECAT(...,hParent) if hParent is a valid figure or uipanel handle, it
+% is used to display the images.
 %
 % First two arguments (x,y) and last three arguments ('link','xy','equal')
 % are optional. Last three arguments can be issued in any order after the
@@ -26,8 +29,8 @@ function h=imagecat(varargin)
 % Version history: March 2011, initial implementation.
 %                  June 2012, optional linking, axis xy, axis equal.
 %                  Feb 2013, improved error checking and included usage example.
+%                  Dec 2013, 
 
-clf;
 
 if(nargin < 2)
     error('Atleast two images are required.');
@@ -46,12 +49,13 @@ else
 end
 
 
-% The last four arguments may be 'link', 'xy', 'equal','colormap'.
-postargsStart=nargin-4;
+% The last five arguments may be 'link', 'xy', 'equal','colormap', handle (figure or uipanel), 'off'.
+postargsStart=nargin-6;
 if(postargsStart<3) % First two arguments are images or vectors.
     postargsStart=3;
 end
-    
+
+% Test for presence of each of the five arguments and set the flags.
 if(any(cellfun(@(x) strcmp(x,'link'), varargin(postargsStart:end))))
     linkplots=true;
     imageidx=imageidx(1:end-1);
@@ -73,11 +77,26 @@ else
     axiseq=false;
 end
 
-if(any(cellfun(@(x) strcmp(x,'colorbar'), varargin(postargsStart+1:end))))
+if(any(cellfun(@(x) strcmp(x,'off'), varargin(postargsStart:end))))
+    axisoff=true;
+    imageidx=imageidx(1:end-1);
+else
+    axisoff=false;
+end
+
+if(any(cellfun(@(x) strcmp(x,'colorbar'), varargin(postargsStart:end))))
     showcolormap=true;
     imageidx=imageidx(1:end-1);
 else
     showcolormap=false;
+end
+
+hParentTest=cellfun(@(x) (isscalar(x) && ishandle(x)), varargin(postargsStart:end));
+if(any(hParentTest))
+    hParent=varargin{postargsStart + find(hParentTest) -1};
+    imageidx=imageidx(1:end-1); % Shorten the list of varargin indices that are designated as images.
+else
+    hParent=gcf;
 end
 
 % Make sure that all other arguments are images.
@@ -90,8 +109,10 @@ end
 h=zeros(size(imageidx));
 numcols=ceil(length(imageidx)/2);
 
+
 for n=1:length(imageidx)
-    h(n)=subplot(2,numcols,n); 
+    
+    h(n)=subplot(2,numcols,n,'Parent',hParent); 
     
     imagesc(x,y,varargin{imageidx(n)}); 
     title(inputname(imageidx(n)));
@@ -109,6 +130,10 @@ for n=1:length(imageidx)
     end
     
     axis tight;
+    
+    if(axisoff)
+        axis off;
+    end
 end
 
 if(linkplots)
