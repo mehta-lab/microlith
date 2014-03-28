@@ -54,7 +54,7 @@ switch(self.config)
         [mtheta, mr]=cart2pol(self.mm,self.nn);%#ok<ASGLU>
 
         u=self.u;
-        parfor idx=1:length(u)
+        for idx=1:length(u)
             GenSource=Ic.*exp(pi*1i*u(idx)*mr.^2);
             mutint(:,:,idx)=fftshift(ifft2(ifftshift(ifftscale*GenSource)));
         end

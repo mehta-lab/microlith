@@ -126,17 +126,12 @@ switch(self.config)
             mshift=single(mshift);
             Ns=single(numel(srcInt));
             switch(computeDevice)
-                case 'CPU'
-                    for idx=1:length(self.u)
+                case 'CPU' % Serial computation. FFT is multi-threaded.
+                    parfor idx=1:length(self.u)
                         %img(:,:,idx)=sumOverSource(objspec,Tfun(:,:,idx),Ic);
                         img(:,:,idx)=hsumOverSource(objspec,Tfun(:,:,idx),srcInt,nshift,mshift,Ns,L);
                     end          
-                case 'multiCPU'
-                    parfor idx=1:length(self.u)
-                      %  img(:,:,idx)=sumOverSource(objspec,Tfun(:,:,idx),Ic);
-                       img(:,:,idx)=hsumOverSource(objspec,Tfun(:,:,idx),srcInt,nshift,mshift,Ns,L);
-                    end
-                case 'GPU'
+                case 'GPU' % Parallel computation with GPU.
                     % Transfer the vectors and matrices to GPU.
                     objspecG=gpuArray(objspec);
                     nshiftG=gpuArray(nshift); 
@@ -146,9 +141,12 @@ switch(self.config)
                     Lg=gpuArray(L);
                     for idx=1:length(self.u)
                         PoG=gpuArray(Tfun(:,:,idx));
-                        imgG=hsumOverSource(objspecG,PoG,srcIntG,nshiftG,mshiftG,NsG,Lg);
+                        %imgG=hsumOverSource(objspecG,PoG,srcIntG,nshiftG,mshiftG,NsG,Lg);
+                        imgG=sumOverSourcePar(objspecG,PoG,srcIntG,nshiftG,mshiftG,NsG,Lg);
                         img(:,:,idx)=gather(imgG);
+                        clear('PoG'); % Clear to make space on GPU.
                     end
+                    clear('objspecG','nshiftG','nshiftG','mshiftG','srcIntG');
 %                 case 'CPUvectorized'
 %                     for idx=1:length(self.u)
 %                         img(:,:,idx)=sumOverSourceVectorized(specimen,Tfun(:,:,idx),srcInt,nshift,mshift,Ns);
@@ -220,8 +218,7 @@ PixSize=self.x(2)-self.x(1);
 switch(self.config)
     case 'Coherent'
         RadiometricFactor=ifftscale*(PixSize/0.1)^2*(self.params.NAo)^2; 
-        img=RadiometricFactor*img;  
-        self.img=squeeze(img);
+        img=squeeze(RadiometricFactor*img);  
 
     case {'Brightfield','Darkfield','PhaseContrast','DIC','DIC-Preza','PlasDIC'}
         Sfactor=1/Np; % sum over soure 'brightens' the image by number of source points. 
@@ -231,19 +228,39 @@ switch(self.config)
         % For partially coherent imaging, ifft is applied on amplitude
         % image and then the result is squared. The radiometric factor
         % needs to take into account this squaring.
-        img=RadiometricFactor*img;
-        self.img=squeeze(img);
+        img=squeeze(RadiometricFactor*img);
+        
     case {'Fluorescence','Incoherent','Confocal'}
         RadiometricFactor=ifftscale*(PixSize/0.1)^2*(self.params.NAo)^2; 
-        img=RadiometricFactor*img;        
-        self.img=squeeze(real(img));
+        img=squeeze(real(RadiometricFactor*img));        
         % Fluorescence image has to be real and therefore objspec has to be conjugate-symmetric.
         % But, I don't use 'symmetric option of ifft2 because of the
         % preceding ifftshift.
 end
-       
+    
+%%%% If polychromatic illumination.
+%%---------------------------------
 
+if(~isscalar(self.params.wavelength)) 
+    SpectralWeights=gray2norm(self.params.SourceSpectrum).*gray2norm(self.params.CameraSensitivity);
 
+    CenterWavelengthIdx=find(self.params.wavelength == self.params.CentralWavelength);
+    
+    SpectralWeights=SpectralWeights/sum(SpectralWeights); % Ensure area unde spectral weights is unity.
+    xshifts=self.params.ChromaticShiftX-self.params.ChromaticShiftX(CenterWavelengthIdx);
+    yshifts=self.params.ChromaticShiftY-self.params.ChromaticShiftY(CenterWavelengthIdx);
+    DiffractionScaling=self.params.wavelength/self.params.CentralWavelength;
+    ChromaticScaling=self.params.ChromaticScaling/self.params.ChromaticScaling(CenterWavelengthIdx);
+    Scaling=DiffractionScaling.*ChromaticScaling;
+    for idw=1:numel(self.params.wavelength)
+        affinemat=ShiftScaleRotToaffine(xshifts(idw),yshifts(idw),Scaling(idw),Scaling(idw),0);
+        imgPresentWavelength=SpectralWeights(idw)*imtransformAffineMat(double(img),affinemat,'bilinear','coordinates','centered','PixSize',PixSize);
+        self.img=self.img+imgPresentWavelength;
+    end
+else
+    self.img=img;
+    
+end
 end
 
 function img=computeImageAmpInt(objspec,Tfun) 

@@ -14,7 +14,9 @@ function computesys(self,config,params)
 %     NAo           Numerical aperture of the imaging path (all configurations)
 %     nImm          Refractive index of the objective immersion medium (all configurations)        
 %     nEmbb         Refractive index of the specimen embedding medium (all configurations)
-%     wavelength    Wavelength (in um) that dictates the resolution (all configurations)
+%     wavelength    Wavelength (in um) that affects the optical resolution
+%     (all configurations). If wavelength is a vector, polychromatic
+%     illumination is assumed.
 %     NAc           Numerical aperture of the condenser (only for transmitted light methods).                           
 %     annulus       For dark-field and phase-contrast systems the annulus
 %                   parameter has to be a vector [InnerNA OuterNA].
@@ -27,11 +29,21 @@ function computesys(self,config,params)
 %                   90 leads to brightfield contrast.
 %     shearangle    For DIC,DIC-Preza, and PlasDIC systems, 
 %                   the direction of shear specified in degrees.
+%     CameraSensitivity Sensitivity of the camera as a function of
+%                       wavelength.
+%     SourceSpectrum    Spectral distribuition of the source as a function
+%                       of wavelength.
+%           
 %     astigmatism   Astigmatism specified as coefficients of Zernike polynomials (n,m)=(2,-2) and
 %     (2,2)
 %     coma          Coma specified as coefficeients of Zernike polynomials
 %     (n,m)= (3,1) and (3,-1).
 %     spherical     Spherical aberration specified as coefficent for Zernike polynomial (n,m)=(4,0). 
+%     ChromaticShiftX 
+%     ChromaticShiftY chromatic shift across wavelengths mentioned in wavelength.
+%     ChromaticScale chromatic scaling (beyond the scaling caused by diffraction)
+
+%  
 %
 %   Written by Shalin Mehta, www.mshalin.com 
 %   License: GPL v3 or later.
@@ -58,11 +70,18 @@ function computesys(self,config,params)
 %   In the optical units used for simulation, the first zero of airy disk occurs at 0.61 and the
 %   axial minima at 2.
 %  
+
+   % If wavelength is a vector, use central wavelength for simulation.
+   if(isvector(params.wavelength))
+       params.CentralWavelength=median(params.wavelength);
+   else
+       params.CentralWavelength=params.wavelength;
+   end
    % Establish normalized coordinates.
    %-----------------------------------------
    
-   u=self.z*(params.NAo^2/params.wavelength)*(params.nEmbb/params.nImm^2);
-   v=self.x*(params.NAo/params.wavelength);
+   u=self.z*(params.NAo^2/params.CentralWavelength)*(params.nEmbb/params.nImm^2);
+   v=self.x*(params.NAo/params.CentralWavelength);
    [self.vxx, self.vyy]=meshgrid(v);
    
     % Prepare the normalized spatial-frequency grid.
